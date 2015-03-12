@@ -32,9 +32,16 @@ begin
     PORT = ARGV[1]
 rescue Exception => argException
     puts ">> Illegal Arguments"
-    puts ">> Usage: ruby client.rb (serverIP serverPort)"
+    puts ">> Usage: ruby Server.rb (serverIP serverPort)"
     exit
 end
+
+if ARGV.length != 2
+    puts ">> Illegal Arguments"
+    puts ">> Usage: ruby Server.rb (serverIP serverPort)"
+    exit
+end
+
 
 #Initialize log files
 file = File.new('Server_EPOLL.log', 'w')

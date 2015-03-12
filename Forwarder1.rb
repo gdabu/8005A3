@@ -46,7 +46,6 @@ for i in 0..forwardingPairs.length - 1 do
 		#This infinite loop allows 
 		while 1
 
-
 			Thread.new(clientListenerSocket.accept) do |clientTransmitterSocket|
 
 				puts "new connection"
@@ -63,13 +62,17 @@ for i in 0..forwardingPairs.length - 1 do
 					#Client kills connection
 					if clientTransmitterSocket.eof?
 
+
 						clientTransmitterSocket.close
 						serverTransmitterSocket.close
+						puts "closed connection"
+
 
 						break #break here to leave thread block, hence ending thread
 					end #end if
 
 				end #end while 1
+
 			end #end thread 
 
 		end

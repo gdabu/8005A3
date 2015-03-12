@@ -94,3 +94,13 @@ def forwardMessage( readSocket, writeSocket, readBufferSize )
 	return data
 end
 
+
+def forwardMessage_nonblock( readSocket, writeSocket, readBufferSize )
+	data = readSocket.recv_nonblock(readBufferSize)
+	if(data.length != 0) then 
+		writeSocket.write data
+		writeSocket.flush
+		puts (data)
+	end
+	return data
+end
