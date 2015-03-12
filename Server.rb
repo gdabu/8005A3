@@ -43,10 +43,6 @@ if ARGV.length != 2
 end
 
 
-#Initialize log files
-file = File.new('Server_EPOLL.log', 'w')
-$logger = Logger.new(file)
-
 #/*---------------------------------------------------------------------------------------
 #-- MODULE:       EchoServer
 #--

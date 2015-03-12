@@ -39,10 +39,6 @@ $currentNumberOfConnections = 0
 threads = []
 STDOUT.sync = true
 
-#Initialize log files
-file = File.new('client.log', 'w')
-logger = Logger.new(file)
-
 #Generate a message w/ a length equaling the amount specified by the user
 for c in 0...MESSAGESIZEBYTES do
 	message << "g"
