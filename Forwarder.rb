@@ -9,23 +9,45 @@ begin
 	HOST = ARGV[0]
 	PORT = ARGV[1]
 	READBUFFERSIZE = Integer(ARGV[2])
+	$configFile = ARGV[3]
 rescue Exception => argException
   	puts ">> Illegal Arguments"
-  	puts ">> Usage: ruby forwarder.rb (serverIP serverPort readBufferSize)"
+  	puts ">> Usage: ruby forwarder.rb (serverIP serverPort readBufferSize configFile)"
   	exit
 end
 
 descriptors = []
-serverSocket = TCPServer.new( PORT )
-serverSocket.setsockopt( Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1 )
+listenerSockets = Array.new{Array.new(2)}
+$pairArray = Array.new{Array.new(3)}
+
+#fill out the pair array
+File.foreach($configFile).grep /FORWARD/ do |line|
+	array = line.split(/[ ,:]/)
+	$pairArray.push([array[1], array[2], array[3].strip!])
+end
+
+
+#listen on ports specifed from config file
+$pairArray.each { |srcPort|
+	puts srcPort[2].length
+	listenSocket = TCPServer.new( '127.0.0.1', srcPort[0] )
+	listenSocket.setsockopt( Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1 )
+
+	senderSocket = TCPSocket.open( srcPort[1], srcPort[2] )
+	#senderSocket.setsockopt( Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1 )
+
+	puts "gfdgfhdh"
+	listenerSockets[0].push(listenSocket)
+	listenerSockets[1].push(senderSocket)
+	puts "listneer socket:: #{listenerSockets}"
+}
+
 mutex = Mutex.new
 STDOUT.sync = true
 
-forwardInfo1 = [8005, 127.0.0.1, 8500]
-forwardInfo2 = [8006, 127.0.0.1, 8600]
-forwardInfo3 = [8007, 127.0.0.1, 8700]
 
-forwardPairs 
+
+
 
 #Initialize log files
 
@@ -34,37 +56,32 @@ forwardPairs
 #----------------
 puts "Echo server listening on #{HOST}:#{PORT}"
 
+
 begin
 
-
-#client disconnects when thread dies
-while 1
-	#create a thread for every new connection
-   	Thread.new(serverSocket.accept) do |clientSocket| 
-		
-		descriptors.push(clientSocket)
-		puts descriptors.length
-
-		puts "geoff"
-		serverSocket = TCPSocket.open("127.0.0.1", 8006)
-		puts "geoff1"
-
+#for each client side listener socket create a new thread
+listenerSockets.each { |clientsock,serversock|
+	Thread.new do
+		#continuously try to accept new connections on that socket
 		while 1
+			#create a thread for every new connection
+   			Thread.new(clientsock.accept) do |clientSocket| 
+   				#if we created a new connection, open a socket with the corresponding forward IP:port
+   				#serverSocket = TCPSocket.open(sock[1])
 
-			sentMessage = forwardMessage(clientSocket, serverSocket, READBUFFERSIZE)
-			sentMessage = forwardMessage(serverSocket, clientSocket, READBUFFERSIZE)
-			
-			#Client kills connection
-			if clientSocket.eof?
-				#killConnection is put into a mutex so that disconnections are made 1-by-1
-				mutex.synchronize do
-					killConnection( clientSocket, descriptors )
+				while 1
+
+					sentMessage = forwardMessage(clientSocket, serversock, READBUFFERSIZE)
+					sentMessage = forwardMessage(serversock, clientSocket, READBUFFERSIZE)
+					
 				end
-				break #break here to leave thread block, hence ending thread
-			end #end if
-	    end #end while
-    end #end connection
-end #end 
+			end
+		end
+	end
+}
+
+
+
 
 rescue Exception => e
 	puts ">> #{e.message}"
