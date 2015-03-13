@@ -56,29 +56,42 @@ for i in 0..forwardingPairs.length - 1 do
 		while 1
 
 			Thread.new(clientListenerSocket.accept) do |clientTransmitterSocket|
-
-				puts clientTransmitterSocket
 				
 				puts "new connection"
 				serverTransmitterSocket = TCPSocket.open(serverIP_threadlocal, serverPort_threadlocal)
 				puts "connected to server"
 
-				while 1
 
-					sentMessage = forwardMessage(clientTransmitterSocket, serverTransmitterSocket, READBUFFERSIZE)
-					puts "rx from client tx to server"
-					sentMessage = forwardMessage(serverTransmitterSocket, clientTransmitterSocket, READBUFFERSIZE)
-					puts "rx from server tx to client"
+				Thread.new do
+					while 1
+						sentMessage = forwardMessage(clientTransmitterSocket, serverTransmitterSocket, READBUFFERSIZE)
+					end
+				end
 
-					#Client kills connection
-					if clientTransmitterSocket.eof?
-						clientTransmitterSocket.close
-						serverTransmitterSocket.close
-						puts "closed connection"
-						break #break here to leave thread block, hence ending thread
-					end #end if
+				Thread.new do
+					while 1 
+						sentMessage = forwardMessage(serverTransmitterSocket, clientTransmitterSocket, READBUFFERSIZE)
+					end
+				end
 
-				end #end while 1
+
+				sleep
+				#while 1
+				#
+				#	sentMessage = forwardMessage(clientTransmitterSocket, serverTransmitterSocket, READBUFFERSIZE)
+				#	puts "rx from client tx to server"
+				#	sentMessage = forwardMessage(serverTransmitterSocket, clientTransmitterSocket, READBUFFERSIZE)
+				#	puts "rx from server tx to client"
+				#
+				#	#Client kills connection
+				#	if clientTransmitterSocket.eof?
+				#		clientTransmitterSocket.close
+				#		serverTransmitterSocket.close
+				#		puts "closed connection"
+				#		break #break here to leave thread block, hence ending thread
+				#	end #end if
+				#
+				#end #end while 1
 
 			end #end thread 
 

@@ -88,7 +88,6 @@ end
 
 def forwardMessage( readSocket, writeSocket, readBufferSize )
 	data = readSocket.read( readBufferSize )
-	puts (data)
 	writeSocket.write data
 	writeSocket.flush
 	puts (data)
