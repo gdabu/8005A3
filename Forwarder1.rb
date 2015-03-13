@@ -1,5 +1,4 @@
 require "socket"
-require "logger"
 require 'thread'
 require 'thwait'
 
@@ -9,11 +8,13 @@ require_relative "ServerFunctions.rb"
 #-- Variable Declaration
 #------------------------
 begin
-	READBUFFERSIZE = Integer(ARGV[0])
-	$configFile = ARGV[1]
+	IPADDRESS = ARGV[0]
+	READBUFFERSIZE = Integer(ARGV[1])
+	$configFile = ARGV[2]
+
 rescue Exception => argException
   	puts ">> Illegal Arguments"
-  	puts ">> Usage: ruby forwarder.rb (readBufferSize configFile)"
+  	puts ">> Usage: ruby forwarder.rb (IPAddress readBufferSize configFile)"
   	exit
 end
 
@@ -43,11 +44,21 @@ for i in 0..forwardingPairs.length - 1 do
 		clientListenerSocket = TCPServer.new( listeningPort_threadlocal )
 		clientListenerSocket.setsockopt( Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1 )
 
+		
+		#socket = Socket.new( :INET, :STREAM, 0 )
+		#socket.setsockopt( Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1 )
+		#sockaddr = Socket.pack_sockaddr_in( listeningPort_threadlocal, IPADDRESS )
+		#socket.bind( sockaddr )
+		#socket.listen( 5 )
+
+		
 		#This infinite loop allows 
 		while 1
 
 			Thread.new(clientListenerSocket.accept) do |clientTransmitterSocket|
 
+				puts clientTransmitterSocket
+				
 				puts "new connection"
 				serverTransmitterSocket = TCPSocket.open(serverIP_threadlocal, serverPort_threadlocal)
 				puts "connected to server"
@@ -61,13 +72,9 @@ for i in 0..forwardingPairs.length - 1 do
 
 					#Client kills connection
 					if clientTransmitterSocket.eof?
-
-
 						clientTransmitterSocket.close
 						serverTransmitterSocket.close
 						puts "closed connection"
-
-
 						break #break here to leave thread block, hence ending thread
 					end #end if
 

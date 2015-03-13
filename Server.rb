@@ -21,7 +21,6 @@
 #-- CLIENT: client.rb
 #---------------------------------------------------------------------------------------*/
 require 'rubygems'
-require 'logger'
 require 'eventmachine'
 
 #------------------------
@@ -29,17 +28,25 @@ require 'eventmachine'
 #------------------------
 begin
     HOST = ARGV[0]
-    PORT = ARGV[1]
+    $configFile = ARGV[1]
 rescue Exception => argException
     puts ">> Illegal Arguments"
-    puts ">> Usage: ruby Server.rb (serverIP serverPort)"
+    puts ">> Usage: ruby Server.rb (serverIP configFile)"
     exit
 end
 
 if ARGV.length != 2
     puts ">> Illegal Arguments"
-    puts ">> Usage: ruby Server.rb (serverIP serverPort)"
+    puts ">> Usage: ruby Server.rb (serverIP configFile)"
     exit
+end
+
+#contains all the variables needed to forward a packet from one socket to another
+forwardingPairs = Array.new{Array.new(3)}
+
+File.foreach($configFile).grep /FORWARD/ do |line|
+    forwardingInfo = line.split(/[ ,:]/)
+    forwardingPairs.push([forwardingInfo[1], forwardingInfo[2], forwardingInfo[3].strip!])
 end
 
 
@@ -65,7 +72,6 @@ module EchoServer
    	def post_init
       	puts $numberOfConnectedClients += 1
 
-        $logger.info('NEW_CONNECTION') { "  #{Socket.unpack_sockaddr_in(get_peername)}" }
 
         if $numberOfConnectedClients > $maxNumberOfClients
             $maxNumberOfClients = $numberOfConnectedClients
@@ -79,8 +85,6 @@ module EchoServer
         send_data (data)
         $numberOfBytesSent += data.bytesize
 
-        $logger.info('CLIENT_REQUEST') { " #{Socket.unpack_sockaddr_in(get_peername)}: #{$numberOfClientRequests}" }
-        $logger.info('SENDING_DATA') { " #{Socket.unpack_sockaddr_in(get_peername)}: #{data.bytesize}" }
 
         puts (data)
   	end
@@ -108,9 +112,10 @@ puts "Max number of File Descriptors: #{EM.set_descriptor_table_size}"
 begin
     # Start Event Machine 
     EM.run { 
-        puts "Echo server listening on #{HOST}:#{PORT}"
-        EM.start_server HOST, 7000, EchoServer
-        EM.start_server HOST, 8000, EchoServer 
+        for i in 0..forwardingPairs.length - 1 do
+            EM.start_server HOST, forwardingPairs[i][2], EchoServer 
+            puts "Echo server listening on #{HOST}:#{forwardingPairs[i][2]}"
+        end
     }
 
 rescue Exception => e
@@ -122,12 +127,4 @@ ensure
     puts "Total Number of Client Requests Received: #{$numberOfClientRequests}"
     puts "Total Number of Bytes Sent: #{$numberOfBytesSent}"
     puts "------------------------------------------------"
-
-    $logger.info('FINAL_RESULTS'){"------------------------------------------------"}
-    $logger.info('FINAL_RESULTS'){"Maximum Number of Concurrent Clients: #{$maxNumberOfClients}"}
-    $logger.info('FINAL_RESULTS'){"Total Number of Client Requests Received: #{$numberOfClientRequests}"}
-    $logger.info('FINAL_RESULTS'){"Total Number of Bytes Sent: #{$numberOfBytesSent}"}
-    $logger.info('FINAL_RESULTS'){"------------------------------------------------"}
-
-    $logger.close
 end

@@ -20,7 +20,6 @@
 require "socket"
 require 'thread'
 require 'thwait'
-require "logger"
 
 begin
 	HOST = ARGV[0]
@@ -57,7 +56,6 @@ while $currentNumberOfConnections < TOTALCLIENTS
 			currentConnectionNumber = $currentNumberOfConnections
 			puts currentConnectionNumber
 			
-			logger.info('|CONNECTED|'){"	[#{currentConnectionNumber}]"}
 			
 			startTime = Time.new
 
@@ -65,18 +63,15 @@ while $currentNumberOfConnections < TOTALCLIENTS
 			#messageNumber = 0
 			TOTALMESSAGES.times do
 				serverSocket.write( message )
-				#logger.info("|SENDING|"){"	[#{currentConnectionNumber}]	:: MessageNumber=#{messageNumber += 1}; BytesSent=#{message.bytesize}"}
-				
 				line = serverSocket.read( message.bytesize )
-				#logger.info("|RECEIVING|"){"	[#{currentConnectionNumber}]	:: MessageNumber=#{messageNumber}; BytesReceived=#{message.bytesize}"}
+
 				STDOUT.puts line
 			end
 
 			#calculate the average RTT for the sent messages
 			totalRTT = Time.new - startTime
 			avgRTT = totalRTT / TOTALMESSAGES
-			logger.info("|FINISHED|"){"	[#{currentConnectionNumber}]	:: TotalRequests=#{TOTALMESSAGES}; TotalBytesSent=#{TOTALMESSAGES*message.bytesize}; avgRTT=#{avgRTT}"}
-
+			
 			#sleep to prevent thread from closing the connection
 			sleep
 			#serverSocket.close
