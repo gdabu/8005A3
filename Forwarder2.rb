@@ -12,6 +12,7 @@ module VirtualPort
     end
 
     def receive_data data
+        puts ("recx from server")
         @sender.send_data(data)
     end
 end
@@ -36,6 +37,7 @@ module Server
     end
 
     def receive_data data
+        puts ("recx from client")
         if(@client)
             @client.send_data(data)
         end

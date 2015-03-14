@@ -49,13 +49,11 @@ end
 begin
 while $currentNumberOfConnections < TOTALCLIENTS
 	
-	threads = Thread.fork() do
-			$currentNumberOfConnections += 1
+	threads = Thread.new($currentNumberOfConnections += 1) do |currentConnectionNumber_threadLocal|
+			
 			serverSocket = TCPSocket.open(HOST, PORT)
 
-			currentConnectionNumber = $currentNumberOfConnections
-			puts currentConnectionNumber
-			
+			puts currentConnectionNumber_threadLocal
 			
 			startTime = Time.new
 

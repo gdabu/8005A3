@@ -44,14 +44,6 @@ for i in 0..forwardingPairs.length - 1 do
 		clientListenerSocket = TCPServer.new( listeningPort_threadlocal )
 		clientListenerSocket.setsockopt( Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1 )
 
-		
-		#socket = Socket.new( :INET, :STREAM, 0 )
-		#socket.setsockopt( Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1 )
-		#sockaddr = Socket.pack_sockaddr_in( listeningPort_threadlocal, IPADDRESS )
-		#socket.bind( sockaddr )
-		#socket.listen( 5 )
-
-		
 		#This infinite loop allows 
 		while 1
 
@@ -76,22 +68,6 @@ for i in 0..forwardingPairs.length - 1 do
 
 
 				sleep
-				#while 1
-				#
-				#	sentMessage = forwardMessage(clientTransmitterSocket, serverTransmitterSocket, READBUFFERSIZE)
-				#	puts "rx from client tx to server"
-				#	sentMessage = forwardMessage(serverTransmitterSocket, clientTransmitterSocket, READBUFFERSIZE)
-				#	puts "rx from server tx to client"
-				#
-				#	#Client kills connection
-				#	if clientTransmitterSocket.eof?
-				#		clientTransmitterSocket.close
-				#		serverTransmitterSocket.close
-				#		puts "closed connection"
-				#		break #break here to leave thread block, hence ending thread
-				#	end #end if
-				#
-				#end #end while 1
 
 			end #end thread 
 
